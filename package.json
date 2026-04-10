@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon server.js"
-
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
+    "ejs": "^5.0.1",
     "express": "^5.2.1",
     "express-validator": "^7.3.2"
   },

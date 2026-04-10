@@ -1,4 +1,4 @@
-import exrpess from "express";
+import express from "express";
 import {body, validationResult} from "express-validator";
 const app=express();
 
