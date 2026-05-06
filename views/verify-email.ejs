@@ -1,0 +1,39 @@
+<%- include('partials/header', { title: 'Email Verification' }) %>
+
+<section>
+  <h2>Email Verification</h2>
+  <p>Email adresinize gönderilen 6 haneli kodu girin.</p>
+
+  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+    <div style="background: #ffe0e0; padding: 1rem; border: 1px solid red; margin-bottom: 1rem;">
+      <ul>
+        <% errors.forEach(err => { %>
+          <li><%= err.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <% if (typeof message !== 'undefined') { %>
+    <div style="background: #e0ffe0; padding: 1rem; border: 1px solid green; margin-bottom: 1rem;">
+      <%= message %>
+    </div>
+  <% } %>
+
+  <form action="/verify-email" method="POST">
+    <div>
+      <label for="code">Verification Code:</label>
+      <input type="text" name="code" id="code" maxlength="6" required>
+    </div>
+    <button type="submit">Verify</button>
+  </form>
+
+  <hr style="margin: 2rem 0;">
+
+  <p>Kod gelmedi mi?</p>
+  <form action="/verify-email/resend" method="POST">
+    <button type="submit">Yeniden Gönder</button>
+  </form>
+</section>
+
+<%- include('partials/footer') %>

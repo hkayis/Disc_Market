@@ -1,0 +1,52 @@
+<%- include('partials/header', { title: 'Market Sign Up' }) %>
+
+<section>
+  <h2>Market Sign Up</h2>
+
+  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+    <div style="background: #ffe0e0; padding: 1rem; border: 1px solid red; margin-bottom: 1rem;">
+      <ul>
+        <% errors.forEach(err => { %>
+          <li><%= err.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <form action="/signup/market" method="POST">
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email"
+             value="<%= typeof old !== 'undefined' ? old.email : '' %>">
+    </div>
+
+    <div>
+      <label for="name">Market Name:</label>
+      <input type="text" name="name" id="name"
+             value="<%= typeof old !== 'undefined' ? old.name : '' %>">
+    </div>
+
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" name="password" id="password">
+    </div>
+
+    <div>
+      <label for="city">City:</label>
+      <input type="text" name="city" id="city"
+             value="<%= typeof old !== 'undefined' ? old.city : '' %>">
+    </div>
+
+    <div>
+      <label for="district">District:</label>
+      <input type="text" name="district" id="district"
+             value="<%= typeof old !== 'undefined' ? old.district : '' %>">
+    </div>
+
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <p><a href="/signup">Geri</a></p>
+</section>
+
+<%- include('partials/footer') %>

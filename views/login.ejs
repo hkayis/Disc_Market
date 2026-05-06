@@ -1,34 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Log In</h1>
-    <form action="/" method="post">
-        <div>
-          <span>Email: </span>  
-        <input type="text" name="email" id="">
-        </div>
-        <div>
-        <span>Market name:</span>
-        <input type="text" name="name" id="">
-        </div>
-        <div>
-        <span>Password:</span>
-        <input type="text" name="passw">
-        </div>
-        <div>
-        <span>City:</span>
-        <input type="text" name="city" id="">
-        </div>
-        <div>
-        <span>District:</span>
-        <input type="text" name="district" id="">
-        </div>
-        <button>Log In</button>
-    </form>
-</body>
-</html>
+<%- include('partials/header', { title: 'Log In' }) %>
+
+<section>
+  <h2>Log In</h2>
+
+  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+    <div style="background: #ffe0e0; padding: 1rem; border: 1px solid red; margin-bottom: 1rem;">
+      <ul>
+        <% errors.forEach(err => { %>
+          <li><%= err.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <form action="/login" method="POST">
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email"
+             value="<%= typeof old !== 'undefined' ? old.email : '' %>">
+    </div>
+
+    <div>
+      <label for="password">Password:</label>
+      <input type="password" name="password" id="password">
+    </div>
+
+    <button type="submit">Log In</button>
+  </form>
+
+  <p>Hesabın yok mu? <a href="/signup">Kaydol</a></p>
+</section>
+
+<%- include('partials/footer') %>
