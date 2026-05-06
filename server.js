@@ -366,17 +366,14 @@ app.post(
       }
 
       if (!user.is_verified) {
-  // Verify akışına yönlendir
   req.session.pendingVerificationUserId = user.id;
   
-  // Eğer son kod expire olduysa veya hiç yoksa, yeni kod gönder
   const [activeCodes] = await pool.query(
     "SELECT id FROM email_verifications WHERE user_id = ? AND expires_at > NOW()",
     [user.id]
   );
   
   if (activeCodes.length === 0) {
-    // Aktif kod yok, yeni gönder
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     
@@ -400,7 +397,6 @@ app.post(
       req.session.role = user.role;
       req.session.email = user.email;
 
-      // Role'e göre yönlendir
       if (user.role === "market") {
         res.redirect("/market/dashboard");
       } else {
