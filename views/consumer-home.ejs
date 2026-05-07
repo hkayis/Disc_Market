@@ -465,7 +465,7 @@
           <div class="product-card">
             <div class="product-image">
               <% if (product.image_path) { %>
-                <img src="/<%= product.image_path %>" alt="<%= product.title %>" />
+                <img src="/uploads/<%= product.image_path %>" alt="<%= product.title %>" />
               <% } else { %>
                 📦
               <% } %>
@@ -486,11 +486,12 @@
               <% } %>
 
               <div class="price-row">
-                <span class="discounted-price"><%= product.discounted_price %> ₺</span>
-                <% if (product.normal_price > product.discounted_price) { %>
-                  <span class="normal-price"><%= product.normal_price %> ₺</span>
-                <% } %>
-              </div>
+  <span class="discounted-price"><%= Number(product.discounted_price).toFixed(2) %> ₺</span>
+
+  <% if (Number(product.normal_price) > Number(product.discounted_price)) { %>
+    <span class="normal-price"><%= Number(product.normal_price).toFixed(2) %> ₺</span>
+  <% } %>
+</div>
 
               <div class="expiry-info">
                 <% if (product.days_left === 0) { %>

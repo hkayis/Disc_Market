@@ -959,7 +959,7 @@ app.get("/consumer/home", async(req, res) => {
     const sqlSearch = `%${escaped}%`;
 
     const [resultCnt] = await pool.query(
-      "SELECT COUNT(*) as totalCount from products p join markets m on p.market_id = m.user_id where m.city = ? and p.expiration_date >= CURDATE()and p.stock > 0 and p.title LIKE ?",
+      "SELECT COUNT(*) as totalCount from products p join markets m on p.market_id = m.user_id where m.city = ? and p.expiration_date >= CURDATE() and p.stock > 0 and p.title LIKE ?",
     [consumerCity, sqlSearch]);
     
     const totalProducts = resultCnt[0].totalCount;
