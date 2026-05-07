@@ -1,0 +1,49 @@
+<%- include('partials/header', { title: 'Profile' }) %>
+
+<section>
+  <h2>My Profile</h2>
+
+  <% if (typeof message !== 'undefined' && message) { %>
+    <div style="background: #e0ffe0; padding: 1rem; border: 1px solid green; margin-bottom: 1rem;">
+      <%= message %>
+    </div>
+  <% } %>
+
+  <% if (typeof errors !== 'undefined' && errors && errors.length > 0) { %>
+    <div style="background: #ffe0e0; padding: 1rem; border: 1px solid red; margin-bottom: 1rem;">
+      <ul>
+        <% errors.forEach(err => { %>
+          <li><%= err.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <form action="/consumer/profile" method="POST">
+    <div>
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email" value="<%= consumer.email %>">
+    </div>
+
+    <div>
+      <label for="full_name">Full Name:</label>
+      <input type="text" name="full_name" id="full_name" value="<%= consumer.full_name %>">
+    </div>
+
+    <div>
+      <label for="city">City:</label>
+      <input type="text" name="city" id="city" value="<%= consumer.city %>">
+    </div>
+
+    <div>
+      <label for="district">District:</label>
+      <input type="text" name="district" id="district" value="<%= consumer.district %>">
+    </div>
+
+    <button type="submit">Save Changes</button>
+  </form>
+
+  <p><a href="/consumer/home">Back to Home</a></p>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepetim | Discount Market</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e5e5e7;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d7a4a;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-link {
+            text-decoration: none;
+            color: #1d1d1f;
+            font-size: 14px;
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .back-link:hover {
+            background: #f0f0f0;
+        }
+
+        .logout-btn {
+            background: none;
+            border: 1px solid #d2d2d7;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #1d1d1f;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #f0f0f0;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #1d1d1f;
+        }
+
+        /* Cart table */
+        .cart-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f5f5f7;
+            border-bottom: 1px solid #e5e5e7;
+        }
+
+        th {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6e6e73;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        td {
+            padding: 16px 20px;
+            font-size: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .price-cell {
+            color: #2d7a4a;
+            font-weight: 600;
+        }
+
+        /* Quantity controls */
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #d2d2d7;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            color: #1d1d1f;
+        }
+
+        .qty-btn:hover {
+            background: #f0f0f0;
+            border-color: #b0b0b5;
+        }
+
+        .qty-value {
+            min-width: 28px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .remove-btn {
+            background: none;
+            border: 1px solid #e5e5e7;
+            color: #c62828;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .remove-btn:hover {
+            background: #fff0f0;
+            border-color: #c62828;
+        }
+
+        /* Summary card */
+        .summary-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .grand-total-label {
+            font-size: 15px;
+            color: #6e6e73;
+        }
+
+        .grand-total-amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2d7a4a;
+            margin-top: 4px;
+        }
+
+        .purchase-btn {
+            background: #2d7a4a;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .purchase-btn:hover {
+            background: #246138;
+        }
+
+        .purchase-btn:disabled {
+            background: #a0a0a5;
+            cursor: not-allowed;
+        }
+
+        /* Empty state */
+        .empty-state {
+            background: #fff;
+            padding: 80px 20px;
+            border-radius: 12px;
+            text-align: center;
+            color: #6e6e73;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+            margin-bottom: 24px;
+        }
+
+        .shop-btn {
+            display: inline-block;
+            background: #1d1d1f;
+            color: white;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .shop-btn:hover {
+            background: #2d7a4a;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            padding: 14px 20px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s, transform 0.3s;
+            max-width: 360px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-success { background: #2d7a4a; }
+        .toast-error   { background: #c62828; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">Discount Market</div>
+        <div class="header-right">
+            <a href="/consumer/home" class="back-link">← Alışverişe Dön</a>
+            <form action="/logout" method="POST" style="display: inline;">
+                <button type="submit" class="logout-btn">Çıkış</button>
+            </form>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">🛒 Alışveriş Sepetim</h1>
+
+        <% if (cartItems.length === 0) { %>
+            <div class="empty-state">
+                <div class="empty-icon">🛒</div>
+                <h3>Sepetiniz boş</h3>
+                <p>Henüz sepetinize ürün eklemediniz.</p>
+                <a href="/consumer/home" class="shop-btn">Alışverişe Başla</a>
+            </div>
+        <% } else { %>
+            <div class="cart-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ürün Adı</th>
+                            <th>Birim Fiyat</th>
+                            <th>Miktar</th>
+                            <th>Toplam</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% cartItems.forEach(item => { %>
+                            <tr id="row-<%= item.cart_item_id %>">
+                                <td class="product-name"><%= item.title %></td>
+                                <td class="price-cell"><%= item.discounted_price %> ₺</td>
+                                <td>
+                                    <div class="qty-controls">
+                                        <button class="qty-btn" onclick="updateQuantity(<%= item.cart_item_id %>, 'decrease')">−</button>
+                                        <span class="qty-value" id="qty-<%= item.cart_item_id %>"><%= item.quantity %></span>
+                                        <button class="qty-btn" onclick="updateQuantity(<%= item.cart_item_id %>, 'increase')">+</button>
+                                    </div>
+                                </td>
+                                <td class="price-cell" id="total-<%= item.cart_item_id %>"><%= item.total_price %> ₺</td>
+                                <td>
+                                    <button class="remove-btn" onclick="removeItem(<%= item.cart_item_id %>)">Sil</button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="summary-card">
+                <div>
+                    <div class="grand-total-label">Genel Toplam</div>
+                    <div class="grand-total-amount" id="grandTotal"><%= grandTotal %> ₺</div>
+                </div>
+                <button id="purchaseBtn" class="purchase-btn" onclick="purchaseCart()">
+                    Satın Al
+                </button>
+            </div>
+        <% } %>
+    </div>
+
+    <script>
+        async function updateQuantity(cartItemId, action) {
+            const res = await fetch('/consumer/cart/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cartItemId, action })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                showToast(data.message || "İşlem başarısız oldu.", "error");
+            }
+        }
+
+        async function removeItem(cartItemId) {
+            if (!confirm("Ürünü sepetten silmek istediğinize emin misiniz?")) return;
+
+            const res = await fetch('/consumer/cart/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cartItemId })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                location.reload();
+            } else {
+                showToast(data.message || "Silme başarısız.", "error");
+            }
+        }
+
+        async function purchaseCart() {
+            const btn = document.getElementById("purchaseBtn");
+            btn.disabled = true;
+            btn.innerText = "İşleniyor...";
+
+            const res = await fetch('/consumer/cart/purchase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast(data.message, "success");
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast(data.message || "Satın alma başarısız oldu.", "error");
+                btn.disabled = false;
+                btn.innerText = "Satın Al";
+            }
+        }
+
+        function showToast(message, type = "success") {
+            const existing = document.querySelector(".toast");
+            if (existing) existing.remove();
+
+            const toast = document.createElement("div");
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add("show"), 10);
+            setTimeout(() => {
+                toast.classList.remove("show");
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
