@@ -6,6 +6,9 @@ import {body, validationResult} from "express-validator";
 import "./config/mailer.js";   
 import bcrypt from "bcrypt";
 import { sendVerificationEmail } from "./config/mailer.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs/promises";
 
 const app=express();
 
@@ -13,6 +16,21 @@ app.set("view engine","ejs");
 app.use(express.urlencoded({extended: true}));
 app.use(express.static("public"));
 app.use(express.json());
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/");
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const name = path.basename(file.originalname, ext);
+    cb(null, `${Date.now()}-${name}${ext}`);
+  }
+});
+
+const upload = multer({ storage });
+
+const allowedImageExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -409,12 +427,509 @@ app.post(
   }
 );
 
-app.get("/market/dashboard", (req, res) => {
+app.get("/market/dashboard", async (req, res) => {
   if (!req.session.userId || req.session.role !== "market") {
     return res.redirect("/login");
   }
-  res.send(`Welcome to Market Dashboard! Email: ${req.session.email}`);
+
+  try {
+    const [marketRows] = await pool.query(
+      `SELECT 
+        users.id AS user_id,
+        users.email,
+        markets.name,
+        markets.city,
+        markets.district
+      FROM users
+      JOIN markets ON users.id = markets.user_id
+      WHERE users.id = ?`,
+      [req.session.userId]
+    );
+
+    if (marketRows.length === 0) {
+      return res.status(404).send("Market profile not found");
+    }
+
+    const market = marketRows[0];
+
+    const [productStats] = await pool.query(
+      `SELECT 
+        COUNT(*) AS totalProducts,
+        SUM(CASE WHEN expiration_date < CURDATE() THEN 1 ELSE 0 END) AS expiredProducts
+      FROM products
+      WHERE market_id = ?`,
+      [req.session.userId]
+    );
+
+    res.render("market-dashboard", {
+      market,
+      totalProducts: productStats[0].totalProducts || 0,
+      expiredProducts: productStats[0].expiredProducts || 0
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error: " + err.message);
+  }
 });
+
+app.get("/market/products/add", (req, res) => {
+  if (!req.session.userId || req.session.role !== "market") {
+    return res.redirect("/login");
+  }
+
+  res.render("add-product", {
+    errors: [],
+    old: {}
+  });
+});
+
+app.post(
+  "/market/products/add",
+  upload.single("image"),
+  [
+    body("title")
+      .trim()
+      .notEmpty().withMessage("Product title is required")
+      .isLength({ min: 2, max: 200 }).withMessage("Title must be 2-200 characters"),
+
+    body("stock")
+      .notEmpty().withMessage("Stock is required")
+      .isInt({ min: 1 }).withMessage("Stock must be a positive integer"),
+
+    body("normal_price")
+      .notEmpty().withMessage("Normal price is required")
+      .isFloat({ min: 0.01 }).withMessage("Normal price must be greater than 0"),
+
+    body("discounted_price")
+      .notEmpty().withMessage("Discounted price is required")
+      .isFloat({ min: 0.01 }).withMessage("Discounted price must be greater than 0")
+      .custom((value, { req }) => {
+        if (Number(value) >= Number(req.body.normal_price)) {
+          throw new Error("Discounted price must be lower than normal price");
+        }
+
+        return true;
+      }),
+
+    body("expiration_date")
+      .notEmpty().withMessage("Expiration date is required")
+      .isISO8601().withMessage("Invalid expiration date"),
+  ],
+  async (req, res) => {
+    if (!req.session.userId || req.session.role !== "market") {
+      return res.redirect("/login");
+    }
+
+    const errors = validationResult(req).array();
+
+    if (!req.file) {
+      errors.push({ msg: "Product image is required" });
+    }
+
+    if (req.file) {
+      const ext = path.extname(req.file.originalname).toLowerCase();
+
+      if (!allowedImageExtensions.includes(ext)) {
+        errors.push({ msg: "Only JPG, JPEG, PNG, and GIF files are allowed" });
+      }
+    }
+
+    if (errors.length > 0) {
+  if (req.file) {
+    try {
+      await fs.unlink(req.file.path);
+    } catch (err) {
+      console.error("Uploaded file could not be deleted:", err);
+    }
+  }
+
+  return res.render("add-product", {
+    errors,
+    old: req.body
+  });
+}
+
+    const {
+      title,
+      stock,
+      normal_price,
+      discounted_price,
+      expiration_date
+    } = req.body;
+
+    try {
+      await pool.query(
+        `INSERT INTO products
+        (market_id, title, stock, normal_price, discounted_price, expiration_date, image_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          req.session.userId,
+          title,
+          stock,
+          normal_price,
+          discounted_price,
+          expiration_date,
+          req.file.filename
+        ]
+      );
+
+      res.redirect("/market/products");
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Error: " + err.message);
+    }
+  }
+);
+
+app.get("/market/products", async (req, res) => {
+  if (!req.session.userId || req.session.role !== "market") {
+    return res.redirect("/login");
+  }
+
+  try {
+    const [products] = await pool.query(
+      `SELECT *
+       FROM products
+       WHERE market_id = ?
+       ORDER BY created_at DESC`,
+      [req.session.userId]
+    );
+
+    res.render("market-products", {
+      products
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error: " + err.message);
+  }
+});
+
+app.get("/market/products/:id/edit", async (req, res) => {
+  if (!req.session.userId || req.session.role !== "market") {
+    return res.redirect("/login");
+  }
+
+  const productId = req.params.id;
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT *
+       FROM products
+       WHERE id = ? AND market_id = ?`,
+      [productId, req.session.userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).send("Product not found or you are not allowed to edit it");
+    }
+
+    res.render("edit-product", {
+      product: rows[0],
+      errors: []
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error: " + err.message);
+  }
+});
+
+app.post(
+  "/market/products/:id/edit",
+  upload.single("image"),
+  [
+    body("title")
+      .trim()
+      .notEmpty().withMessage("Product title is required")
+      .isLength({ min: 2, max: 200 }).withMessage("Title must be 2-200 characters"),
+
+    body("stock")
+      .notEmpty().withMessage("Stock is required")
+      .isInt({ min: 1 }).withMessage("Stock must be a positive integer"),
+
+    body("normal_price")
+      .notEmpty().withMessage("Normal price is required")
+      .isFloat({ min: 0.01 }).withMessage("Normal price must be greater than 0"),
+
+    body("discounted_price")
+      .notEmpty().withMessage("Discounted price is required")
+      .isFloat({ min: 0.01 }).withMessage("Discounted price must be greater than 0")
+      .custom((value, { req }) => {
+        if (Number(value) >= Number(req.body.normal_price)) {
+          throw new Error("Discounted price must be lower than normal price");
+        }
+
+        return true;
+      }),
+
+    body("expiration_date")
+      .notEmpty().withMessage("Expiration date is required")
+      .isISO8601().withMessage("Invalid expiration date"),
+  ],
+  async (req, res) => {
+    if (!req.session.userId || req.session.role !== "market") {
+      return res.redirect("/login");
+    }
+
+    const productId = req.params.id;
+
+    try {
+      const [rows] = await pool.query(
+        `SELECT *
+         FROM products
+         WHERE id = ? AND market_id = ?`,
+        [productId, req.session.userId]
+      );
+
+      if (rows.length === 0) {
+        if (req.file) {
+          await fs.unlink(req.file.path);
+        }
+
+        return res.status(404).send("Product not found or you are not allowed to edit it");
+      }
+
+      const existingProduct = rows[0];
+
+      const errors = validationResult(req).array();
+
+      if (req.file) {
+        const ext = path.extname(req.file.originalname).toLowerCase();
+
+        if (!allowedImageExtensions.includes(ext)) {
+          errors.push({ msg: "Only JPG, JPEG, PNG, and GIF files are allowed" });
+        }
+      }
+
+      if (errors.length > 0) {
+        if (req.file) {
+          try {
+            await fs.unlink(req.file.path);
+          } catch (err) {
+            console.error("Uploaded file could not be deleted:", err);
+          }
+        }
+
+        return res.render("edit-product", {
+          errors,
+          product: {
+            ...existingProduct,
+            ...req.body
+          }
+        });
+      }
+
+      const {
+        title,
+        stock,
+        normal_price,
+        discounted_price,
+        expiration_date
+      } = req.body;
+
+      let imagePath = existingProduct.image_path;
+
+      if (req.file) {
+        imagePath = req.file.filename;
+
+        if (existingProduct.image_path) {
+          try {
+            await fs.unlink(`public/uploads/${existingProduct.image_path}`);
+          } catch (err) {
+            console.error("Old image could not be deleted:", err);
+          }
+        }
+      }
+
+      await pool.query(
+        `UPDATE products
+         SET title = ?,
+             stock = ?,
+             normal_price = ?,
+             discounted_price = ?,
+             expiration_date = ?,
+             image_path = ?
+         WHERE id = ? AND market_id = ?`,
+        [
+          title,
+          stock,
+          normal_price,
+          discounted_price,
+          expiration_date,
+          imagePath,
+          productId,
+          req.session.userId
+        ]
+      );
+
+      res.redirect("/market/products");
+
+    } catch (err) {
+      console.error(err);
+
+      if (req.file) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (fileErr) {
+          console.error("Uploaded file could not be deleted after error:", fileErr);
+        }
+      }
+
+      res.status(500).send("Error: " + err.message);
+    }
+  }
+);
+
+app.post("/market/products/:id/delete", async (req, res) => {
+  if (!req.session.userId || req.session.role !== "market") {
+    return res.redirect("/login");
+  }
+
+  const productId = req.params.id;
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT image_path 
+       FROM products 
+       WHERE id = ? AND market_id = ?`,
+      [productId, req.session.userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).send("Product not found or you are not allowed to delete it");
+    }
+
+    const imagePath = rows[0].image_path;
+
+    await pool.query(
+      `DELETE FROM products 
+       WHERE id = ? AND market_id = ?`,
+      [productId, req.session.userId]
+    );
+
+    if (imagePath) {
+      try {
+        await fs.unlink(`public/uploads/${imagePath}`);
+      } catch (err) {
+        console.error("Product image could not be deleted:", err);
+      }
+    }
+
+    res.redirect("/market/products");
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error: " + err.message);
+  }
+});
+app.get("/market/profile", async (req, res) => {
+  if (!req.session.userId || req.session.role !== "market") {
+    return res.redirect("/login");
+  }
+
+  try {
+    const [rows] = await pool.query(
+      `SELECT 
+        users.email,
+        markets.name,
+        markets.city,
+        markets.district
+      FROM users
+      JOIN markets ON users.id = markets.user_id
+      WHERE users.id = ?`,
+      [req.session.userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).send("Market profile not found");
+    }
+
+    res.render("market-profile", {
+      market: rows[0],
+      errors: [],
+      message: null
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error: " + err.message);
+  }
+});
+
+app.post(
+  "/market/profile",
+  [
+    body("name")
+      .trim()
+      .notEmpty().withMessage("Market name is required")
+      .isLength({ min: 2, max: 150 }).withMessage("Market name must be 2-150 characters"),
+
+    body("city")
+      .trim()
+      .notEmpty().withMessage("City is required")
+      .isLength({ min: 2, max: 100 }).withMessage("City must be 2-100 characters"),
+
+    body("district")
+      .trim()
+      .notEmpty().withMessage("District is required")
+      .isLength({ min: 2, max: 100 }).withMessage("District must be 2-100 characters"),
+  ],
+  async (req, res) => {
+    if (!req.session.userId || req.session.role !== "market") {
+      return res.redirect("/login");
+    }
+
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.render("market-profile", {
+        market: {
+          email: req.session.email,
+          name: req.body.name,
+          city: req.body.city,
+          district: req.body.district
+        },
+        errors: errors.array(),
+        message: null
+      });
+    }
+
+    const { name, city, district } = req.body;
+
+    try {
+      await pool.query(
+        `UPDATE markets
+         SET name = ?, city = ?, district = ?
+         WHERE user_id = ?`,
+        [name, city, district, req.session.userId]
+      );
+
+      const [rows] = await pool.query(
+        `SELECT 
+          users.email,
+          markets.name,
+          markets.city,
+          markets.district
+        FROM users
+        JOIN markets ON users.id = markets.user_id
+        WHERE users.id = ?`,
+        [req.session.userId]
+      );
+
+      res.render("market-profile", {
+        market: rows[0],
+        errors: [],
+        message: "Market information updated successfully"
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Error: " + err.message);
+    }
+  }
+);
 
 app.get("/consumer/home", (req, res) => {
   if (!req.session.userId || req.session.role !== "consumer") {

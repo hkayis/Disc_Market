@@ -1,0 +1,70 @@
+<%- include('partials/header', { title: 'Edit Market Profile' }) %>
+
+<section>
+  <h2>Edit Market Profile</h2>
+
+  <% if (typeof message !== 'undefined' && message) { %>
+    <div style="background: #e0ffe0; padding: 1rem; border: 1px solid green; margin-bottom: 1rem;">
+      <%= message %>
+    </div>
+  <% } %>
+
+  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+    <div style="background: #ffe0e0; padding: 1rem; border: 1px solid red; margin-bottom: 1rem;">
+      <ul>
+        <% errors.forEach(err => { %>
+          <li><%= err.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <form action="/market/profile" method="POST">
+    <div>
+      <label for="email">Email:</label>
+      <input 
+        type="email" 
+        id="email" 
+        value="<%= market.email %>" 
+        disabled
+      >
+      <p style="font-size: 0.9rem;">Email cannot be changed here.</p>
+    </div>
+
+    <div>
+      <label for="name">Market Name:</label>
+      <input 
+        type="text" 
+        name="name" 
+        id="name"
+        value="<%= market.name %>"
+      >
+    </div>
+
+    <div>
+      <label for="city">City:</label>
+      <input 
+        type="text" 
+        name="city" 
+        id="city"
+        value="<%= market.city %>"
+      >
+    </div>
+
+    <div>
+      <label for="district">District:</label>
+      <input 
+        type="text" 
+        name="district" 
+        id="district"
+        value="<%= market.district %>"
+      >
+    </div>
+
+    <button type="submit">Update Profile</button>
+  </form>
+
+  <p><a href="/market/dashboard">Back to Dashboard</a></p>
+</section>
+
+<%- include('partials/footer') %>

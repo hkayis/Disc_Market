@@ -1,0 +1,53 @@
+<%- include('partials/header', { title: 'My Products' }) %>
+
+<section>
+  <h2>My Products</h2>
+
+  <p>
+    <a href="/market/dashboard">Back to Dashboard</a> |
+    <a href="/market/products/add">Add New Product</a>
+  </p>
+
+  <% if (products.length === 0) { %>
+    <p>You have not added any products yet.</p>
+  <% } %>
+
+  <% products.forEach(product => { %>
+    <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem; background: #f9f9f9;">
+
+      <% if (product.image_path) { %>
+        <img 
+          src="/uploads/<%= product.image_path %>" 
+          alt="<%= product.title %>" 
+          style="width: 150px; height: auto;"
+        >
+      <% } %>
+
+      <h3><%= product.title %></h3>
+
+      <p><strong>Stock:</strong> <%= product.stock %></p>
+      <p><strong>Normal Price:</strong> <%= product.normal_price %> TL</p>
+      <p><strong>Discounted Price:</strong> <%= product.discounted_price %> TL</p>
+      <p><strong>Expiration Date:</strong> <%= product.expiration_date %></p>
+
+      <% if (new Date(product.expiration_date) < new Date()) { %>
+        <p style="color: red; font-weight: bold;">EXPIRED</p>
+      <% } %>
+
+      <p>
+        <a href="/market/products/<%= product.id %>/edit">Edit</a>
+      </p>
+
+      <form 
+        action="/market/products/<%= product.id %>/delete" 
+        method="POST"
+        onsubmit="return confirm('Are you sure you want to delete this product?')"
+      >
+        <button type="submit">Delete</button>
+      </form>
+
+    </div>
+  <% }) %>
+</section>
+
+<%- include('partials/footer') %>
