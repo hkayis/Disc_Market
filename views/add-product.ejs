@@ -1,0 +1,88 @@
+<%- include('partials/header', { title: 'Add Product' }) %>
+
+<section>
+  <h2>Add Product</h2>
+
+  <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+    <div style="background: #ffe0e0; padding: 1rem; border: 1px solid red; margin-bottom: 1rem;">
+      <ul>
+        <% errors.forEach(err => { %>
+          <li><%= err.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <form action="/market/products/add" method="POST" enctype="multipart/form-data">
+    <div>
+      <label for="title">Product Title:</label>
+      <input 
+        type="text" 
+        name="title" 
+        id="title"
+        value="<%= typeof old !== 'undefined' ? old.title : '' %>"
+      >
+    </div>
+
+    <div>
+      <label for="stock">Stock:</label>
+      <input 
+        type="number" 
+        name="stock" 
+        id="stock"
+        min="1"
+        value="<%= typeof old !== 'undefined' ? old.stock : '' %>"
+      >
+    </div>
+
+    <div>
+      <label for="normal_price">Normal Price:</label>
+      <input 
+        type="number" 
+        step="0.01" 
+        name="normal_price" 
+        id="normal_price"
+        min="0"
+        value="<%= typeof old !== 'undefined' ? old.normal_price : '' %>"
+      >
+    </div>
+
+    <div>
+      <label for="discounted_price">Discounted Price:</label>
+      <input 
+        type="number" 
+        step="0.01" 
+        name="discounted_price" 
+        id="discounted_price"
+        min="0"
+        value="<%= typeof old !== 'undefined' ? old.discounted_price : '' %>"
+      >
+    </div>
+
+    <div>
+      <label for="expiration_date">Expiration Date:</label>
+      <input 
+        type="date" 
+        name="expiration_date" 
+        id="expiration_date"
+        value="<%= typeof old !== 'undefined' ? old.expiration_date : '' %>"
+      >
+    </div>
+
+    <div>
+      <label for="image">Product Image:</label>
+      <input 
+        type="file" 
+        name="image" 
+        id="image"
+       
+      >
+    </div>
+
+    <button type="submit">Add Product</button>
+  </form>
+
+  <p><a href="/market/dashboard">Back to Dashboard</a></p>
+</section>
+
+<%- include('partials/footer') %>
