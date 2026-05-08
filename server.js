@@ -1291,66 +1291,58 @@ app.get("/consumer/profile", async (req, res) => {
 app.post(
   "/consumer/profile",
   [
-    body("email")
-      .trim()
-      .notEmpty().withMessage("Email is required")
-      .isEmail().withMessage("Invalid email format")
-      .normalizeEmail(),
     body("full_name")
       .trim()
       .notEmpty().withMessage("Full name is required")
       .isLength({ min: 2, max: 150 }).withMessage("Name must be 2-150 characters"),
-    body("city").trim().notEmpty().withMessage("City is required"),
-    body("district").trim().notEmpty().withMessage("District is required"),
+
+    body("city")
+      .trim()
+      .notEmpty().withMessage("City is required"),
+
+    body("district")
+      .trim()
+      .notEmpty().withMessage("District is required"),
   ],
   async (req, res) => {
     if (!req.session.userId || req.session.role !== "consumer") {
       return res.redirect("/login");
     }
 
-    const { email, full_name, city, district } = req.body;
+    const { full_name, city, district } = req.body;
     const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      return res.render("consumer-profile", {
-        consumer: { email, full_name, city, district },
-        errors: errors.array(),
-        message: undefined
-      });
-    }
-
     try {
-      // Email başkasında mı kontrol et
-      const [existing] = await pool.query(
-        "SELECT id FROM users WHERE email = ? AND id <> ?",
-        [email, req.session.userId]
+      const [userRows] = await pool.query(
+        "SELECT email FROM users WHERE id = ?",
+        [req.session.userId]
       );
 
-      if (existing.length > 0) {
+      if (userRows.length === 0) {
+        return res.redirect("/login");
+      }
+
+      const email = userRows[0].email;
+
+      if (!errors.isEmpty()) {
         return res.render("consumer-profile", {
           consumer: { email, full_name, city, district },
-          errors: [{ msg: "This email is already used by another account" }],
+          errors: errors.array(),
           message: undefined
         });
       }
-
-      await pool.query(
-        "UPDATE users SET email = ? WHERE id = ?",
-        [email, req.session.userId]
-      );
 
       await pool.query(
         "UPDATE consumers SET full_name = ?, city = ?, district = ? WHERE user_id = ?",
         [full_name, city, district, req.session.userId]
       );
 
-      req.session.email = email;
-
       res.render("consumer-profile", {
         consumer: { email, full_name, city, district },
         errors: undefined,
         message: "Profile updated successfully"
       });
+
     } catch (err) {
       console.error(err);
       res.status(500).send("Sunucu hatası: " + err.message);

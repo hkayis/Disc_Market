@@ -1,26 +1,416 @@
-body {
-  font-family: sans-serif;
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 1rem;
+/* ===== Reset & base ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ===== Header (partials/header.ejs) ===== */
+header {
+  background: #fff;
+  border-bottom: 1px solid #e5e5e7;
+  padding: 16px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2d7a4a;
+  letter-spacing: -0.3px;
+}
+
+/* ===== Main / section ===== */
+main {
+  max-width: 600px;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+section {
+  background: #fff;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+}
+
+/* Wider section for product list / dashboard */
+.market-products-page main,
+.market-dashboard-page main {
+  max-width: 900px;
+}
+
+/* ===== Headings ===== */
+h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin-bottom: 20px;
+  letter-spacing: -0.4px;
+}
+
+h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 12px;
+  margin-top: 4px;
+}
+
+/* ===== Paragraphs ===== */
+p {
+  font-size: 15px;
+  color: #1d1d1f;
+  margin-bottom: 12px;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== Forms ===== */
 form div {
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
 }
 
 label {
   display: block;
-  margin-bottom: 0.25rem;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 6px;
 }
 
-input {
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="file"] {
   width: 100%;
-  padding: 0.5rem;
-  box-sizing: border-box;
+  padding: 11px 14px;
+  border: 1px solid #d2d2d7;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #fff;
+  color: #1d1d1f;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-button {
-  padding: 0.5rem 1rem;
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus {
+  border-color: #2d7a4a;
+  box-shadow: 0 0 0 3px rgba(45, 122, 74, 0.12);
+}
+
+input:disabled {
+  background: #f5f5f7;
+  color: #6e6e73;
+  cursor: not-allowed;
+}
+
+input[type="file"] {
+  padding: 8px;
   cursor: pointer;
+}
+
+/* ===== Buttons ===== */
+button,
+button[type="submit"] {
+  background: #2d7a4a;
+  color: #fff;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+button:hover {
+  background: #246138;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  background: #b0b0b5;
+  cursor: not-allowed;
+}
+
+/* Secondary button (e.g. "Yeniden Gönder", logout) */
+button.secondary,
+form[action="/logout"] button,
+form[action="/verify-email/resend"] button {
+  background: #fff;
+  color: #1d1d1f;
+  border: 1px solid #d2d2d7;
+}
+
+form[action="/logout"] button:hover,
+form[action="/verify-email/resend"] button:hover,
+button.secondary:hover {
+  background: #f5f5f7;
+}
+
+/* Danger button (delete) */
+form[action$="/delete"] button {
+  background: #fff;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+form[action$="/delete"] button:hover {
+  background: #ffebee;
+}
+
+/* ===== Links ===== */
+a {
+  color: #2d7a4a;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: #246138;
+  text-decoration: underline;
+}
+
+/* "Geri" / "Back" links — softer */
+section > p > a,
+section p a {
+  font-size: 14px;
+}
+
+/* ===== Lists ===== */
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+ul li {
+  padding: 8px 0;
+  font-size: 15px;
+}
+
+ul li a {
+  display: inline-block;
+  padding: 4px 0;
+}
+
+/* ===== Inline alert boxes (errors/messages from EJS) ===== */
+section > div[style*="ffe0e0"],
+section > div[style*="#ffe0e0"] {
+  background: #fff5f5 !important;
+  border: 1px solid #fecaca !important;
+  border-left: 4px solid #c62828 !important;
+  color: #b71c1c;
+  padding: 14px 18px !important;
+  border-radius: 8px !important;
+  margin-bottom: 20px !important;
+}
+
+section > div[style*="ffe0e0"] ul,
+section > div[style*="#ffe0e0"] ul {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+
+section > div[style*="ffe0e0"] li,
+section > div[style*="#ffe0e0"] li {
+  padding: 2px 0;
+  font-size: 14px;
+}
+
+section > div[style*="e0ffe0"],
+section > div[style*="#e0ffe0"] {
+  background: #f0fdf4 !important;
+  border: 1px solid #bbf7d0 !important;
+  border-left: 4px solid #2d7a4a !important;
+  color: #1b5e20;
+  padding: 14px 18px !important;
+  border-radius: 8px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Inline gray info boxes (market dashboard cards) */
+section > div[style*="f5f5f5"] {
+  background: #fafafa !important;
+  border: 1px solid #e5e5e7 !important;
+  padding: 20px !important;
+  border-radius: 10px !important;
+  margin-bottom: 16px !important;
+}
+
+section > div[style*="f5f5f5"] p {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #1d1d1f;
+}
+
+section > div[style*="f5f5f5"] p strong {
+  color: #6e6e73;
+  font-weight: 500;
+  display: inline-block;
+  min-width: 130px;
+}
+
+/* ===== HR ===== */
+hr {
+  border: none;
+  border-top: 1px solid #e5e5e7;
+  margin: 24px 0 !important;
+}
+
+/* ===== Product cards (market-products.ejs uses inline gray boxes) ===== */
+section > div[style*="border: 1px solid #ccc"] {
+  background: #fff !important;
+  border: 1px solid #e5e5e7 !important;
+  border-radius: 10px !important;
+  padding: 20px !important;
+  margin-bottom: 16px !important;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+section > div[style*="border: 1px solid #ccc"] img {
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: #f5f5f7;
+}
+
+section > div[style*="border: 1px solid #ccc"] h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  flex-basis: 100%;
+  order: -1;
+}
+
+section > div[style*="border: 1px solid #ccc"] p {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+section > div[style*="border: 1px solid #ccc"] p strong {
+  color: #6e6e73;
+  font-weight: 500;
+}
+
+section > div[style*="border: 1px solid #ccc"] > p:last-of-type a,
+section > div[style*="border: 1px solid #ccc"] form {
+  display: inline-block;
+  margin-right: 8px;
+  margin-top: 8px;
+}
+
+/* "EXPIRED" label */
+section > div[style*="border: 1px solid #ccc"] p[style*="color: red"] {
+  display: inline-block;
+  background: #fff5f5;
+  color: #c62828 !important;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  margin: 4px 0 12px 0;
+}
+
+/* ===== "EXPIRED" / status badges ===== */
+.badge-expired {
+  display: inline-block;
+  background: #ffebee;
+  color: #c62828;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ===== Small helper text (e.g. "Email cannot be changed here.") ===== */
+p[style*="font-size: 0.9rem"] {
+  font-size: 13px !important;
+  color: #6e6e73;
+  margin-top: 4px;
+  margin-bottom: 0 !important;
+}
+
+/* ===== Sign-up choice cards (signup.ejs) ===== */
+section > div:has(> a[href^="/signup/"]) {
+  margin-bottom: 12px;
+}
+
+section > div > a[href="/signup/consumer"],
+section > div > a[href="/signup/market"] {
+  display: block;
+  padding: 16px 20px;
+  background: #fafafa;
+  border: 1px solid #e5e5e7;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  color: #1d1d1f;
+  transition: all 0.2s;
+}
+
+section > div > a[href="/signup/consumer"]:hover,
+section > div > a[href="/signup/market"]:hover {
+  background: #fff;
+  border-color: #2d7a4a;
+  color: #2d7a4a;
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* ===== Verify-email page polish ===== */
+input[name="code"] {
+  font-size: 22px !important;
+  letter-spacing: 8px;
+  text-align: center;
+  font-weight: 600;
+  padding: 14px !important;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+  main {
+    padding: 0 16px;
+    margin: 16px auto;
+  }
+
+  section {
+    padding: 20px;
+  }
+
+  header {
+    padding: 14px 20px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
 }
