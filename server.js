@@ -129,12 +129,12 @@ await pool.query(
   [userId, code, expiresAt]
 );
 
-console.log(">>> Email gönderiliyor:", email, "kod:", code);
+console.log(">>> Email is being sent:", email, "kod:", code);
 try {
   await sendVerificationEmail(email, code);
-  console.log(">>> Email başarıyla gönderildi");
+  console.log(">>> Email sent successfullt");
 } catch (mailErr) {
-  console.error(">>> Email gönderilemedi:");
+  console.error(">>> Email not sent:");
   console.error(mailErr);
 }
 
@@ -278,7 +278,7 @@ app.post("/verify-email", async (req, res) => {
 
     delete req.session.pendingVerificationUserId;
 
-    res.send("Email verified! Login: <a href='/login'>buraya tıkla</a>");
+    res.send("Email verified! Login: <a href='/login'>Click Here</a>");
   } catch (err) {
     console.error(err);
     res.status(500).send("Error: " + err.message);
@@ -403,7 +403,7 @@ app.post(
     try {
       await sendVerificationEmail(user.email, code);
     } catch (mailErr) {
-      console.error("Email gönderilemedi:", mailErr);
+      console.error("Email not sent:", mailErr);
     }
   }
   
@@ -824,6 +824,7 @@ app.post("/market/products/:id/delete", async (req, res) => {
     res.status(500).send("Error: " + err.message);
   }
 });
+
 app.get("/market/profile", async (req, res) => {
   if (!req.session.userId || req.session.role !== "market") {
     return res.redirect("/login");
@@ -995,7 +996,7 @@ app.get("/consumer/home", async(req, res) => {
 );
 const cartCount = cartCountRows[0].totalCount;
 
-// Sonra res.render'a ekle:
+
 res.render("consumer-home", {
   products: products,
   searchQuery: searchKeyword,
@@ -1005,7 +1006,7 @@ res.render("consumer-home", {
   consumerName: consumerName,
   consumerCity: consumerCity,
   consumerDistrict: consumerDistrict,
-  cartCount: cartCount   // ← bunu ekle
+  cartCount: cartCount   
 });
   }catch(err){
      res.status(500).send("Sunucu hatası: " + err.message);
@@ -1013,11 +1014,11 @@ res.render("consumer-home", {
 });
 
 app.post("/consumer/cart/add", async (req, res) => {
-  // Auth kontrolü
+
   if (!req.session.userId || req.session.role !== "consumer") {
     return res.status(401).json({ 
       success: false, 
-      message: "Giriş yapmalısınız" 
+      message: "You need to login" 
     });
   }
 
@@ -1029,14 +1030,14 @@ app.post("/consumer/cart/add", async (req, res) => {
   if (!productId || productId < 1) {
     return res.status(400).json({ 
       success: false, 
-      message: "Geçersiz ürün" 
+      message: "Wrong Product" 
     });
   }
 
   if (quantity < 1) {
     return res.status(400).json({ 
       success: false, 
-      message: "Miktar en az 1 olmalı" 
+      message: "Amount should be at least 1." 
     });
   }
 
@@ -1054,13 +1055,13 @@ app.post("/consumer/cart/add", async (req, res) => {
     if (productRows.length === 0) {
       return res.status(404).json({ 
         success: false, 
-        message: "Ürün bulunamadı veya süresi dolmuş" 
+        message: "Product not found or expired" 
       });
     }
 
     const product = productRows[0];
 
-    // 2. Sepette bu üründen kaç tane var, kontrol et
+   
     const [existingRows] = await pool.query(
       "SELECT quantity FROM cart_items WHERE consumer_id = ? AND product_id = ?",
       [consumerId, productId]
@@ -1069,7 +1070,6 @@ app.post("/consumer/cart/add", async (req, res) => {
     const currentQuantityInCart = existingRows.length > 0 ? existingRows[0].quantity : 0;
     const newTotalQuantity = currentQuantityInCart + quantity;
 
-    // 3. Stok kontrolü — yeni toplam stoktan fazla olamaz
     if (newTotalQuantity > product.stock) {
       const remaining = product.stock - currentQuantityInCart;
       
@@ -1086,22 +1086,22 @@ app.post("/consumer/cart/add", async (req, res) => {
       });
     }
 
-    // 4. Sepete ekle veya güncelle (UPSERT pattern)
+   
     if (existingRows.length > 0) {
-      // Zaten var, miktarı güncelle
+     
       await pool.query(
         "UPDATE cart_items SET quantity = ? WHERE consumer_id = ? AND product_id = ?",
         [newTotalQuantity, consumerId, productId]
       );
     } else {
-      // Yeni ekle
+    
       await pool.query(
         "INSERT INTO cart_items (consumer_id, product_id, quantity) VALUES (?, ?, ?)",
         [consumerId, productId, quantity]
       );
     }
 
-    // 5. Sepetteki toplam ürün sayısını döndür (badge için)
+   
     const [cartCountRows] = await pool.query(
       "SELECT COALESCE(SUM(quantity), 0) AS totalCount FROM cart_items WHERE consumer_id = ?",
       [consumerId]
@@ -1123,7 +1123,7 @@ app.post("/consumer/cart/add", async (req, res) => {
   }
 });
 
-// ── Sepet sayfası ──────────────────────────────────────────────────────────
+
 app.get("/consumer/cart", async (req, res) => {
   if (!req.session.userId || req.session.role !== "consumer") {
     return res.redirect("/login");
@@ -1150,7 +1150,7 @@ app.get("/consumer/cart", async (req, res) => {
   }
 });
  
-// ── Sepet: miktar güncelle (AJAX) ──────────────────────────────────────────
+
 app.post("/consumer/cart/update", async (req, res) => {
   if (!req.session.userId || req.session.role !== "consumer") {
     return res.status(401).json({ success: false, message: "Giriş yapmalısınız" });
@@ -1191,7 +1191,6 @@ app.post("/consumer/cart/update", async (req, res) => {
   }
 });
  
-// ── Sepet: ürün sil (AJAX) ─────────────────────────────────────────────────
 app.post("/consumer/cart/remove", async (req, res) => {
   if (!req.session.userId || req.session.role !== "consumer") {
     return res.status(401).json({ success: false, message: "Giriş yapmalısınız" });
@@ -1210,7 +1209,6 @@ app.post("/consumer/cart/remove", async (req, res) => {
   }
 });
  
-// ── Sepet: satın al (AJAX) ─────────────────────────────────────────────────
 app.post("/consumer/cart/purchase", async (req, res) => {
   if (!req.session.userId || req.session.role !== "consumer") {
     return res.status(401).json({ success: false, message: "Giriş yapmalısınız" });
@@ -1230,7 +1228,6 @@ app.post("/consumer/cart/purchase", async (req, res) => {
       return res.status(400).json({ success: false, message: "Sepetiniz boş" });
     }
 
-    // Stok kontrolü — sepete ekledikten sonra başkası almış olabilir
     for (const item of cartItems) {
       if (item.quantity > item.stock) {
         return res.status(400).json({
@@ -1240,7 +1237,6 @@ app.post("/consumer/cart/purchase", async (req, res) => {
       }
     }
 
-    // Her ürünün stoğunu sepetteki miktar kadar azalt
     for (const item of cartItems) {
       await pool.query(
         "UPDATE products SET stock = stock - ? WHERE id = ?",
@@ -1248,7 +1244,6 @@ app.post("/consumer/cart/purchase", async (req, res) => {
       );
     }
 
-    // Sepeti temizle
     await pool.query("DELETE FROM cart_items WHERE consumer_id = ?", [consumerId]);
 
     return res.json({ success: true, message: "Satın alma başarıyla tamamlandı! 🎉" });
@@ -1287,7 +1282,6 @@ app.get("/consumer/profile", async (req, res) => {
   }
 });
 
-// ── Consumer profil güncelleme (POST) ──────────────────────────────────────
 app.post(
   "/consumer/profile",
   [

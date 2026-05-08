@@ -2,7 +2,7 @@
 
 <section>
   <h2>Email Verification</h2>
-  <p>Email adresinize gönderilen 6 haneli kodu girin.</p>
+  <p>Enter the 6-digit code sent to your email.</p>
 
   <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
     <div style="background: #ffe0e0; padding: 1rem; border: 1px solid red; margin-bottom: 1rem;">
@@ -30,9 +30,9 @@
 
   <hr style="margin: 2rem 0;">
 
-  <p>Kod gelmedi mi?</p>
+  <p>No Code?</p>
   <form action="/verify-email/resend" method="POST">
-    <button type="submit">Yeniden Gönder</button>
+    <button type="submit">Sent Again</button>
   </form>
 </section>
 

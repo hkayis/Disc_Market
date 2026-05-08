@@ -394,20 +394,20 @@
     <div class="logo">Discount Market</div>
     <div class="header-right">
       <span class="user-info">
-        Hoşgeldin, <strong><%= consumerName %></strong> 
+        Hello, <strong><%= consumerName %></strong> 
         (<%= consumerDistrict %>, <%= consumerCity %>)
       </span>
 
       <a href="/consumer/cart" class="cart-link">
-  🛒 Sepet
+        Cart
   <span class="cart-badge" style="<%= (typeof cartCount !== 'undefined' && cartCount > 0) ? '' : 'display:none;' %>">
     <%= typeof cartCount !== 'undefined' ? cartCount : 0 %>
   </span>
 </a>
 
-      <a href="/consumer/profile" class="profile-link">Profil</a>
+      <a href="/consumer/profile" class="profile-link">Profile</a>
       <form action="/logout" method="POST" style="display: inline;">
-        <button type="submit" class="logout-btn">Çıkış</button>
+        <button type="submit" class="logout-btn">Log Out</button>
       </form>
     </div>
   </header>
@@ -421,13 +421,13 @@
           type="text"
           name="q"
           class="search-input"
-          placeholder="Ürün ara... (örn: süt, ekmek, magnum)"
+          placeholder="Search a product(Milk, eggs, bread...)"
           value="<%= searchQuery %>"
           autocomplete="off"
         />
-        <button type="submit" class="search-btn">Ara</button>
+        <button type="submit" class="search-btn">Search</button>
         <% if (searchQuery) { %>
-          <a href="/consumer/home" class="clear-btn">Temizle</a>
+          <a href="/consumer/home" class="clear-btn">Clear</a>
         <% } %>
       </form>
     </section>
@@ -435,21 +435,21 @@
      <!-- RESULTS INFO -->
     <div class="results-info">
       <% if (searchQuery) { %>
-        "<strong><%= searchQuery %></strong>" için <%= totalProducts %> sonuç bulundu
+        "<strong><%= totalProducts %> results found for <%= searchQuery %></strong>" 
       <% } else { %>
-        <%= consumerCity %> şehrindeki indirimli ürünler (<%= totalProducts %> ürün)
+            Discounted products in <%= consumerCity %> (<%= totalProducts %> products)
       <% } %>
     </div>
 
      <!-- PRODUCT GRID -->
     <% if (products.length === 0) { %>
       <div class="empty-state">
-        <h3>Ürün bulunamadı</h3>
+        <h3>Product not found</h3>
         <p>
           <% if (searchQuery) { %>
-            "<%= searchQuery %>" araması için sonuç yok. Farklı bir kelime dene.
+              No results for "<%= searchQuery %>". Try a different product name.
           <% } else { %>
-            Şehrinde şu an indirimli ürün bulunmuyor.
+            There are no discounted products in your area.
           <% } %>
         </p>
       </div>
@@ -495,22 +495,22 @@
 
               <div class="expiry-info">
                 <% if (product.days_left === 0) { %>
-                  <span class="expiry-soon">⚠️ Bugün son gün!</span>
+                  <span class="expiry-soon">⚠️ Last Day!</span>
                 <% } else if (product.days_left <= 3) { %>
-                  <span class="expiry-soon">⚠️ <%= product.days_left %> gün kaldı</span>
+                  <span class="expiry-soon">⚠️ <%= product.days_left %> days left</span>
                 <% } else { %>
-                  <span class="expiry-ok">📅 <%= product.days_left %> gün kaldı</span>
+                  <span class="expiry-ok">📅 <%= product.days_left %> days left</span>
                 <% } %>
               </div>
 
-              <div class="stock-info">Stok: <%= product.stock %> adet</div>
+              <div class="stock-info">Stock: <%= product.stock %> items</div>
 
               <button
                 class="add-cart-btn"
                 data-product-id="<%= product.id %>"
                 onclick="addToCart(<%= product.id %>)"
               >
-                Sepete Ekle
+                Add to Cart
               </button>
             </div>
           </div>
@@ -528,9 +528,9 @@
         %>
         <div class="pagination">
           <% if (currentPage > 1) { %>
-            <a href="<%= buildUrl(currentPage - 1) %>">← Önceki</a>
+            <a href="<%= buildUrl(currentPage - 1) %>">← Previous</a>
           <% } else { %>
-            <span class="disabled">← Önceki</span>
+            <span class="disabled">← Previous</span>
           <% } %>
 
           <% for (let i = 1; i <= totalPages; i++) { %>
@@ -542,9 +542,9 @@
           <% } %>
 
           <% if (currentPage < totalPages) { %>
-            <a href="<%= buildUrl(currentPage + 1) %>">Sonraki →</a>
+            <a href="<%= buildUrl(currentPage + 1) %>">Next →</a>
           <% } else { %>
-            <span class="disabled">Sonraki →</span>
+            <span class="disabled">Next →</span>
           <% } %>
         </div>
       <% } %>
@@ -553,11 +553,10 @@
   </div>
   <script>
   async function addToCart(productId) {
-    // Butonu bul ve disable et (çift tıklamayı önle)
     const btn = document.querySelector(`button[data-product-id="${productId}"]`);
     const originalText = btn.textContent;
     btn.disabled = true;
-    btn.textContent = "Ekleniyor...";
+    btn.textContent = "Adding to Cart...";
 
     try {
       const response = await fetch("/consumer/cart/add", {
@@ -572,35 +571,29 @@
       const data = await response.json();
 
       if (data.success) {
-        // Başarılı — toast göster
         showToast(data.message, "success");
         
-        // Header'daki sepet badge'ini güncelle
         updateCartBadge(data.cartCount);
         
-        // Buton kısa süre "✓ Eklendi" göstersin
-        btn.textContent = "✓ Eklendi";
+        btn.textContent = "✓ Added";
         setTimeout(() => {
           btn.textContent = originalText;
           btn.disabled = false;
         }, 1500);
       } else {
-        // Hata — kullanıcıya göster
         showToast(data.message, "error");
         btn.textContent = originalText;
         btn.disabled = false;
       }
     } catch (err) {
       console.error("Add to cart error:", err);
-      showToast("Bağlantı hatası, tekrar deneyin", "error");
+      showToast("Connection error, try again", "error");
       btn.textContent = originalText;
       btn.disabled = false;
     }
   }
 
-  // Toast notification — basit ama şık
   function showToast(message, type = "success") {
-    // Eski toast varsa kaldır
     const existing = document.querySelector(".toast");
     if (existing) existing.remove();
 
@@ -609,15 +602,13 @@
     toast.textContent = message;
     document.body.appendChild(toast);
 
-    // Animation: önce görünür yap, 3sn sonra kaldır
     setTimeout(() => toast.classList.add("show"), 10);
     setTimeout(() => {
       toast.classList.remove("show");
       setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    }, 2000);
   }
 
-  // Header'daki sepet sayısını güncelle
   function updateCartBadge(count) {
     const badge = document.querySelector(".cart-badge");
     if (badge) {

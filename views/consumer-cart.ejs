@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sepetim | Discount Market</title>
+    <title>My Cart | Discount Market</title>
     <style>
         * {
             margin: 0;
@@ -309,32 +309,32 @@
     <header class="header">
         <div class="logo">Discount Market</div>
         <div class="header-right">
-            <a href="/consumer/home" class="back-link">← Alışverişe Dön</a>
+            <a href="/consumer/home" class="back-link">← Back To Shopping</a>
             <form action="/logout" method="POST" style="display: inline;">
-                <button type="submit" class="logout-btn">Çıkış</button>
+                <button type="submit" class="logout-btn">Log out</button>
             </form>
         </div>
     </header>
 
     <div class="container">
-        <h1 class="page-title">🛒 Alışveriş Sepetim</h1>
+        <h1 class="page-title"> Shopping Cart</h1>
 
         <% if (cartItems.length === 0) { %>
             <div class="empty-state">
                 <div class="empty-icon">🛒</div>
-                <h3>Sepetiniz boş</h3>
-                <p>Henüz sepetinize ürün eklemediniz.</p>
-                <a href="/consumer/home" class="shop-btn">Alışverişe Başla</a>
+                <h3>Cart is Empty</h3>
+                <p>You haven't added a product yet.</p>
+                <a href="/consumer/home" class="shop-btn">Start Shopping</a>
             </div>
         <% } else { %>
             <div class="cart-card">
                 <table>
                     <thead>
                         <tr>
-                            <th>Ürün Adı</th>
-                            <th>Birim Fiyat</th>
-                            <th>Miktar</th>
-                            <th>Toplam</th>
+                            <th>Product Name</th>
+                            <th>Unit Price</th>
+                            <th>Amount</th>
+                            <th>Total</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -352,7 +352,7 @@
                                 </td>
                                 <td class="price-cell" id="total-<%= item.cart_item_id %>"><%= item.total_price %> ₺</td>
                                 <td>
-                                    <button class="remove-btn" onclick="removeItem(<%= item.cart_item_id %>)">Sil</button>
+                                    <button class="remove-btn" onclick="removeItem(<%= item.cart_item_id %>)">Delete</button>
                                 </td>
                             </tr>
                         <% }) %>
@@ -362,11 +362,11 @@
 
             <div class="summary-card">
                 <div>
-                    <div class="grand-total-label">Genel Toplam</div>
+                    <div class="grand-total-label">Grand Total</div>
                     <div class="grand-total-amount" id="grandTotal"><%= grandTotal %> ₺</div>
                 </div>
                 <button id="purchaseBtn" class="purchase-btn" onclick="purchaseCart()">
-                    Satın Al
+                    Buy
                 </button>
             </div>
         <% } %>
@@ -384,12 +384,12 @@
             if (data.success) {
                 location.reload();
             } else {
-                showToast(data.message || "İşlem başarısız oldu.", "error");
+                showToast(data.message || "Transaction not successful.", "error");
             }
         }
 
         async function removeItem(cartItemId) {
-            if (!confirm("Ürünü sepetten silmek istediğinize emin misiniz?")) return;
+            if (!confirm("Are you sure you want to delete this item from cart?")) return;
 
             const res = await fetch('/consumer/cart/remove', {
                 method: 'POST',
@@ -401,14 +401,14 @@
             if (data.success) {
                 location.reload();
             } else {
-                showToast(data.message || "Silme başarısız.", "error");
+                showToast(data.message || "Deletion failed", "error");
             }
         }
 
         async function purchaseCart() {
             const btn = document.getElementById("purchaseBtn");
             btn.disabled = true;
-            btn.innerText = "İşleniyor...";
+            btn.innerText = "Processing...";
 
             const res = await fetch('/consumer/cart/purchase', {
                 method: 'POST',
@@ -420,7 +420,7 @@
                 showToast(data.message, "success");
                 setTimeout(() => location.reload(), 1200);
             } else {
-                showToast(data.message || "Satın alma başarısız oldu.", "error");
+                showToast(data.message || "Purchase Failed.", "error");
                 btn.disabled = false;
                 btn.innerText = "Satın Al";
             }
