@@ -1026,7 +1026,6 @@ app.post("/consumer/cart/add", async (req, res) => {
   const productId = parseInt(req.body.productId);
   const quantity = parseInt(req.body.quantity) || 1;
 
-  // Input validation
   if (!productId || productId < 1) {
     return res.status(400).json({ 
       success: false, 
@@ -1042,7 +1041,6 @@ app.post("/consumer/cart/add", async (req, res) => {
   }
 
   try {
-    // 1. Ürünün var olduğunu, expired olmadığını ve stoğunu kontrol et
     const [productRows] = await pool.query(
       `SELECT id, title, stock, expiration_date 
        FROM products 
